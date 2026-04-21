@@ -1,16 +1,18 @@
 const express = require('express');
 const router = express.Router();
+const securePhoneController = require('../controllers/securePhoneController');
+const authMiddleware = require('../middleware/auth');
 
-router.post('/', (req, res) => {
-  const { imei, brand, model } = req.body;
-  if (!imei || !brand || !model) {
-    return res.status(400).json({ success: false, message: 'IMEI, marque et modèle requis' });
-  }
-  res.status(201).json({ success: true, message: 'Appareil enregistré avec succès' });
-});
+// Routes publiques
+router.get('/check/:imei', securePhoneController.checkIMEI);
+router.get('/command/:imei', securePhoneController.checkCommand);
 
-router.get('/mine', (req, res) => {
-  res.json({ success: true, data: [] });
-});
+// Routes protégées
+router.get('/mine', authMiddleware, securePhoneController.getMyDevices);
+router.post('/', authMiddleware, securePhoneController.registerDevice);
+router.patch('/:deviceId/stolen', authMiddleware, securePhoneController.reportStolen);
+router.post('/:deviceId/photos', securePhoneController.uploadTheftPhoto);
+router.get('/:deviceId/photos', authMiddleware, securePhoneController.getTheftPhotos);
+router.post('/:deviceId/command', authMiddleware, securePhoneController.sendCommand);
 
 module.exports = router;

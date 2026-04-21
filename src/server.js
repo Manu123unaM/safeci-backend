@@ -7,12 +7,10 @@ require('dotenv').config();
 
 const app = express();
 
-// ── Sécurité
 app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
 
-// ── Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -20,17 +18,16 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// ── Body parser
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ── Routes
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'SafeCI API v1.0 - Bienvenue !',
+    message: 'SafeCI API v1.0',
     version: '1.0.0',
     status: 'running',
+    modules: ['auth', 'civAlert', 'securePhone', 'trackCI'],
     timestamp: new Date().toISOString()
   });
 });
@@ -38,33 +35,24 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   res.json({
     success: true,
-    message: 'SafeCI API opérationnelle',
     uptime: process.uptime(),
     memory: process.memoryUsage(),
     timestamp: new Date().toISOString()
   });
 });
 
-// ── Routes API
-app.use('/api/v1/auth', require('./routes/auth'));
+app.use('/api/v1/auth',      require('./routes/auth'));
 app.use('/api/v1/incidents', require('./routes/incidents'));
-app.use('/api/v1/devices', require('./routes/devices'));
+app.use('/api/v1/devices',   require('./routes/devices'));
+app.use('/api/v1/sms',       require('./routes/sms'));
 
-// ── 404
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route introuvable'
-  });
+  res.status(404).json({ success: false, message: 'Route introuvable' });
 });
 
-// ── Erreurs globales
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Erreur serveur interne'
-  });
+  res.status(500).json({ success: false, message: 'Erreur serveur interne' });
 });
 
 const PORT = process.env.PORT || 3000;
