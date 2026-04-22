@@ -44,6 +44,7 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/auth',      require('./routes/auth'));
 app.use('/api/v1/incidents', require('./routes/incidents'));
 app.use('/api/v1/devices',   require('./routes/devices'));
+app.use('/api/v1/admin', require('./routes/admin'));
 app.use('/api/v1/victime', require('./routes/victimeApp'));
 app.use('/api/v1/trackci', require('./routes/trackCI'));
 app.use('/api/v1/sms',       require('./routes/sms'));
